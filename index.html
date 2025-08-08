@@ -21,7 +21,8 @@
         {
             "imports": {
                 "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+                "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.esm.js"
             }
         }
     </script>
@@ -122,7 +123,6 @@
         .project-nav-dot.active {
             background-color: #18181b; /* Zinc 900 */
         }
-        /* New styles for vertical plan cards animation */
         .plan-card-vertical .reveal-item {
             opacity: 0;
             transform: translateY(20px);
@@ -136,6 +136,15 @@
         .plan-card-vertical.is-visible .reveal-item:nth-child(3) { transition-delay: 0.2s; }
         .plan-card-vertical.is-visible .reveal-item:nth-child(4) { transition-delay: 0.3s; }
         .plan-card-vertical.is-visible .reveal-item:nth-child(5) { transition-delay: 0.4s; }
+
+        /* Fullscreen Modal Styles */
+        #fullscreen-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #modal-viewer-container {
+            width: 100%;
+            height: 100%;
+        }
 
     </style>
 </head>
@@ -154,17 +163,17 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero-section h-screen flex items-center justify-center text-center text-white pt-16">
-        <div>
-            <h1 class="text-5xl md:text-7xl font-black mb-4 leading-tight">PROYECTAMOS TU CASA IDEAL</h1>
-            <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8">Diseñamos los espacios que necesitas para mejorar tu calidad de vida.</p>
-            <a href="#propuesta" class="bg-yellow-400 text-zinc-900 font-bold py-3 px-8 rounded-full uppercase tracking-wider hover:bg-yellow-300 transition-colors duration-300">Conoce Más</a>
-        </div>
-    </section>
-
     <!-- Main Content -->
     <main>
+        <!-- Hero Section -->
+        <section class="hero-section h-screen flex items-center justify-center text-center text-white pt-16">
+            <div>
+                <h1 class="text-5xl md:text-7xl font-black mb-4 leading-tight">PROYECTAMOS TU CASA IDEAL</h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8">Diseñamos los espacios que necesitas para mejorar tu calidad de vida.</p>
+                <a href="#propuesta" class="bg-yellow-400 text-zinc-900 font-bold py-3 px-8 rounded-full uppercase tracking-wider hover:bg-yellow-300 transition-colors duration-300">Conoce Más</a>
+            </div>
+        </section>
+
         <section id="propuesta" class="py-24 bg-white">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="section-title text-4xl mb-6">¿Pensando en ampliar o remodelar?</h2>
@@ -265,12 +274,15 @@
                     </div>
 
                     <!-- 3D Viewer Column -->
-                    <div id="viewer-wrapper">
+                    <div id="viewer-wrapper" class="relative">
                          <div id="viewer-3d-container">
                             <div id="viewer-3d-loader">
                                 <i class="fas fa-spinner fa-spin mr-2"></i> Cargando modelo...
                             </div>
                         </div>
+                        <button id="fullscreen-btn" class="absolute top-4 right-4 bg-black/30 text-white rounded-full w-10 h-10 hover:bg-black/50 transition-colors z-10">
+                            <i class="fas fa-expand"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -310,11 +322,26 @@
         </div>
     </footer>
 
+    <!-- Fullscreen Modal -->
+    <div id="fullscreen-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div id="modal-viewer-container" class="relative w-full h-full"></div>
+        <button id="close-modal-btn" class="absolute top-5 right-5 text-white text-3xl hover:text-yellow-400 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+        import { GUI } from 'lil-gui';
+
+        // Obtener URL base del sitio actual
+        const baseUrl = window.location.protocol + '//' + window.location.host;
+        const basePath = window.location.pathname.split('/')[1] ? '/' + window.location.pathname.split('/')[1] : '';
+        const url = baseUrl + basePath;
 
         // --- Portfolio Data ---
         const projects = [
@@ -326,7 +353,7 @@
                     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
                     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2070&auto=format&fit=crop'
                 ],
-                modelUrl: '/projects/example/scene.gltf'
+                modelUrl: url + '/projects/example/scene.gltf'
             },
             {
                 title: 'Galería de Arte',
@@ -365,6 +392,10 @@
         const prevImgBtn = document.querySelector('.prev-img-btn');
         const nextImgBtn = document.querySelector('.next-img-btn');
         const loader3D = document.getElementById('viewer-3d-loader');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const modal = document.getElementById('fullscreen-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalViewerContainer = document.getElementById('modal-viewer-container');
 
         // --- Portfolio Logic ---
         function updatePortfolioView(index) {
@@ -382,16 +413,18 @@
                 updateDots();
 
                 if (project.modelUrl) {
+                    fullscreenBtn.style.display = 'block';
                     viewerWrapper.style.display = 'block';
                     portfolioGrid.classList.remove('lg:grid-cols-1');
                     portfolioGrid.classList.add('lg:grid-cols-2');
-                    loadModel(project.modelUrl);
+                    loadModel(mainScene, project.modelUrl, (model) => { mainModel = model; });
                 } else {
+                    fullscreenBtn.style.display = 'none';
                     viewerWrapper.style.display = 'none';
                     portfolioGrid.classList.remove('lg:grid-cols-2');
                     portfolioGrid.classList.add('lg:grid-cols-1');
-                    if(currentModel) scene.remove(currentModel);
-                    currentModel = null;
+                    if(mainModel) mainScene.remove(mainModel);
+                    mainModel = null;
                 }
 
                 projectHeader.classList.remove('fade-out');
@@ -469,23 +502,12 @@
         let touchendX = 0;
 
         function handleGesture() {
-            if (touchendX < touchstartX) { // Swiped left
-                nextImgBtn.click();
-            }
-            if (touchendX > touchstartX) { // Swiped right
-                 prevImgBtn.click();
-            }
+            if (touchendX < touchstartX) { nextImgBtn.click(); }
+            if (touchendX > touchstartX) { prevImgBtn.click(); }
         }
 
-        mainImage.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-
-        mainImage.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleGesture();
-        });
-
+        mainImage.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, { passive: true });
+        mainImage.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleGesture(); });
 
         // --- Scrollspy for navigation ---
         const sections = document.querySelectorAll('main section');
@@ -514,91 +536,179 @@
                 }
             });
         }, { threshold: 0.2 });
-        planCards.forEach(card => {
-            cardObserver.observe(card);
-        });
+        planCards.forEach(card => cardObserver.observe(card));
 
-        // --- Three.js 3D Viewer ---
-        const viewerContainer = document.getElementById('viewer-3d-container');
-        let camera, scene, renderer, controls, currentModel;
+        // --- Three.js Logic ---
         const gltfLoader = new GLTFLoader();
+        const clock = new THREE.Clock();
 
-        function init3D() {
-            scene = new THREE.Scene();
+        // Main Scene
+        let mainScene, mainCamera, mainRenderer, mainControls, mainModel;
+
+        function init3D(container, onReady) {
+            const scene = new THREE.Scene();
             scene.background = new THREE.Color(0xe4e4e7);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            viewerContainer.appendChild(renderer.domElement);
+            container.appendChild(renderer.domElement);
+
             const environment = new RoomEnvironment(renderer);
             const pmremGenerator = new THREE.PMREMGenerator(renderer);
             scene.environment = pmremGenerator.fromScene(environment).texture;
             environment.dispose();
-            camera = new THREE.PerspectiveCamera(50, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
+
+            const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.set(0, 0.5, 3);
-            controls = new OrbitControls(camera, renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
+
             window.addEventListener('resize', () => {
-                camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
+                camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+                renderer.setSize(container.clientWidth, container.clientHeight);
             });
-            animate();
+
+            onReady({ scene, camera, renderer, controls });
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        function loadModel(url) {
-            if (currentModel) {
-                scene.remove(currentModel);
-                currentModel = null;
+        function loadModel(scene, url, callback) {
+            const existingModel = scene.getObjectByName("loaded_model");
+            if (existingModel) {
+                scene.remove(existingModel);
             }
-
-            if (!url) {
-                return;
-            }
+            if (!url) return;
 
             loader3D.style.display = 'flex';
 
             gltfLoader.load(url, (gltf) => {
-                currentModel = gltf.scene;
+                const model = gltf.scene;
+                model.name = "loaded_model";
 
-                // Auto-center and scale model
-                const box = new THREE.Box3().setFromObject(currentModel);
+                const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3()).length();
                 const center = box.getCenter(new THREE.Vector3());
 
+                model.position.x += (model.position.x - center.x);
+                model.position.y += (model.position.y - center.y);
+                model.position.z += (model.position.z - center.z);
+
+                const camera = scene.userData.camera;
+                const controls = scene.userData.controls;
+
                 controls.reset();
-
-                currentModel.position.x += (currentModel.position.x - center.x);
-                currentModel.position.y += (currentModel.position.y - center.y);
-                currentModel.position.z += (currentModel.position.z - center.z);
-
                 camera.position.copy(center);
                 camera.position.x += size / 1.5;
                 camera.position.y += size / 2.0;
                 camera.position.z += size / 1.5;
                 camera.lookAt(center);
-
                 controls.target.copy(center);
                 controls.update();
 
-                scene.add(currentModel);
+                scene.add(model);
                 loader3D.style.display = 'none';
+                if (callback) callback(model, gltf.animations);
             }, undefined, (error) => {
                 console.error('An error happened while loading the model:', error);
                 loader3D.textContent = 'Error al cargar modelo';
             });
         }
-        
+
+        // Fullscreen Modal Scene
+        let modalScene, modalCamera, modalRenderer, modalControls, modalModel, modalMixer, modalGui, modalAnimationId;
+
+        fullscreenBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (!modalRenderer) {
+                init3D(modalViewerContainer, (components) => {
+                    modalScene = components.scene;
+                    modalCamera = components.camera;
+                    modalRenderer = components.renderer;
+                    modalControls = components.controls;
+                    modalScene.userData = { camera: modalCamera, controls: modalControls };
+                });
+            }
+
+            loadModel(modalScene, projects[currentProjectIndex].modelUrl, (model, animations) => {
+                modalModel = model;
+                setupModalGui(model, animations);
+            });
+
+            animateModal();
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (modalGui) {
+                modalGui.destroy();
+                modalGui = null;
+            }
+            if (modalAnimationId) {
+                cancelAnimationFrame(modalAnimationId);
+                modalAnimationId = null;
+            }
+        });
+
+        function setupModalGui(model, animations) {
+            if (modalGui) modalGui.destroy();
+            modalGui = new GUI();
+
+            const params = { wireframe: false };
+            modalGui.add(params, 'wireframe').name('Malla (Wireframe)').onChange((value) => {
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.wireframe = value;
+                    }
+                });
+            });
+
+            if (animations && animations.length) {
+                modalMixer = new THREE.AnimationMixer(model);
+                const actions = {};
+                animations.forEach(clip => {
+                    actions[clip.name] = modalMixer.clipAction(clip);
+                });
+
+                const animParams = {
+                    'Reproducir Todo': () => Object.values(actions).forEach(a => a.play()),
+                    'Pausar Todo': () => Object.values(actions).forEach(a => a.stop()),
+                };
+                const animFolder = modalGui.addFolder('Animaciones');
+                animFolder.add(animParams, 'Reproducir Todo');
+                animFolder.add(animParams, 'Pausar Todo');
+            }
+        }
+
+        function animateModal() {
+            modalAnimationId = requestAnimationFrame(animateModal);
+            const delta = clock.getDelta();
+            if (modalMixer) modalMixer.update(delta);
+            modalControls.update();
+            modalRenderer.render(modalScene, modalCamera);
+        }
+
+        function animateMain() {
+            requestAnimationFrame(animateMain);
+            mainControls.update();
+            mainRenderer.render(mainScene, mainCamera);
+        }
+
         // --- Initial Load ---
-        init3D();
-        updatePortfolioView(currentProjectIndex);
+        init3D(document.getElementById('viewer-3d-container'), (components) => {
+            mainScene = components.scene;
+            mainCamera = components.camera;
+            mainRenderer = components.renderer;
+            mainControls = components.controls;
+            mainScene.userData = { camera: mainCamera, controls: mainControls };
+            updatePortfolioView(currentProjectIndex);
+            animateMain();
+        });
 
     </script>
 
