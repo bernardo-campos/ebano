@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÉBANO DISEÑO & CONSTRUCCION</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Montserrat & Lato -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Three.js for 3D Models -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f4f4f5; /* Zinc 100 */
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .section-title {
+            font-weight: 900;
+            color: #18181b; /* Zinc 900 */
+        }
+        .sticky-nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 50;
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #facc15; /* Yellow 400 */
+            transition: width 0.3s;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #facc15; /* Yellow 400 */
+        }
+        .nav-link.active::after, .nav-link:hover::after {
+            width: 100%;
+        }
+        .plan-card .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+        }
+        .plan-card.open .details {
+            max-height: 500px; /* Adjust as needed */
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        .plan-card.open .chevron {
+            transform: rotate(180deg);
+        }
+        #viewer-3d-container {
+            width: 100%;
+            height: 500px;
+            background-color: #e4e4e7; /* Zinc 200 */
+            border-radius: 0.5rem;
+            cursor: grab;
+            position: relative;
+        }
+        #viewer-3d-container:active {
+            cursor: grabbing;
+        }
+        #viewer-3d-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #52525b; /* Zinc 600 */
+            font-size: 1.2rem;
+            display: none; /* Hidden by default */
+        }
+        .thumbnail {
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            border: 2px solid transparent;
+        }
+        .thumbnail:hover {
+            transform: scale(1.05);
+        }
+        .thumbnail.active {
+            border-color: #facc15; /* Yellow 400 */
+        }
+        .fade-out {
+            opacity: 0;
+        }
+        .fade-in {
+            opacity: 1;
+        }
+        #main-project-image {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .project-nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #d4d4d8; /* Zinc 300 */
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .project-nav-dot.active {
+            background-color: #18181b; /* Zinc 900 */
+        }
+    </style>
+</head>
+<body class="bg-zinc-100 text-zinc-800">
+
+    <!-- Sticky Header -->
+    <header id="main-header" class="sticky-nav bg-zinc-900/80 backdrop-blur-sm shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white">ÉBANO</a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#propuesta" class="nav-link text-white font-semibold">Propuesta</a>
+                <a href="#planes" class="nav-link text-white font-semibold">Planes</a>
+                <a href="#portafolio" class="nav-link text-white font-semibold">Portafolio 3D</a>
+                <a href="#contacto" class="nav-link text-white font-semibold">Contacto</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section h-screen flex items-center justify-center text-center text-white pt-16">
+        <div>
+            <h1 class="text-5xl md:text-7xl font-black mb-4 leading-tight">PROYECTAMOS TU CASA IDEAL</h1>
+            <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8">Diseñamos los espacios que necesitas para mejorar tu calidad de vida.</p>
+            <a href="#propuesta" class="bg-yellow-400 text-zinc-900 font-bold py-3 px-8 rounded-full uppercase tracking-wider hover:bg-yellow-300 transition-colors duration-300">Conoce Más</a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main>
+        <section id="propuesta" class="py-24 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="section-title text-4xl mb-6">Nuestra Propuesta</h2>
+                <p class="max-w-3xl mx-auto text-lg text-zinc-600 mb-12">
+                    ¿Pensando en ampliar o remodelar? Te ofrecemos una idea clara y la documentación necesaria para que tu proyecto se convierta en una guía sólida a la hora de construir.
+                </p>
+                <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2070&auto=format&fit=crop" alt="Plano arquitectónico" class="rounded-lg shadow-2xl max-w-full md:max-w-4xl mx-auto">
+            </div>
+        </section>
+
+        <section id="planes" class="py-24">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="section-title text-4xl mb-4">Planes y Servicios</h2>
+                    <p class="text-lg text-zinc-600">Elige el plan que mejor se adapte a tus necesidades. Haz clic para ver los detalles.</p>
+                </div>
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <!-- Plan Cards Here -->
+                     <div class="plan-card bg-white rounded-lg shadow-md cursor-pointer border border-zinc-200">
+                        <div class="p-6 flex justify-between items-center">
+                            <h3 class="text-2xl font-bold text-zinc-800">Plan Básico</h3>
+                            <i class="fas fa-chevron-down chevron transition-transform"></i>
+                        </div>
+                        <div class="details px-6 text-zinc-600">
+                            <p class="mb-4">Ideal para tener una visión clara del proyecto con la documentación esencial.</p>
+                            <ul class="text-left space-y-3 border-t pt-6">
+                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Memoria descriptiva</li>
+                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Plano de Arquitectura (en escala)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="plan-card bg-zinc-800 text-white rounded-lg shadow-xl cursor-pointer border border-yellow-400">
+                        <div class="p-6 flex justify-between items-center">
+                             <div>
+                                <h3 class="text-2xl font-bold">Plan Intermedio</h3>
+                                <span class="text-sm text-yellow-400 font-semibold">MÁS POPULAR</span>
+                            </div>
+                            <i class="fas fa-chevron-down chevron transition-transform"></i>
+                        </div>
+                        <div class="details px-6 text-zinc-300">
+                            <p class="mb-4">Perfecto para visualizar tu proyecto en 3D y entender mejor los volúmenes.</p>
+                            <ul class="text-left space-y-3 border-t border-zinc-600 pt-6">
+                                <li class="flex items-center"><i class="fas fa-check-circle text-yellow-400 mr-3"></i> Todo lo del Plan Básico</li>
+                                <li class="flex items-center"><i class="fas fa-plus-circle text-yellow-400 mr-3"></i> Imágenes 3D conceptuales</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="plan-card bg-white rounded-lg shadow-md cursor-pointer border border-zinc-200">
+                        <div class="p-6 flex justify-between items-center">
+                            <h3 class="text-2xl font-bold text-zinc-800">Plan Completo</h3>
+                            <i class="fas fa-chevron-down chevron transition-transform"></i>
+                        </div>
+                        <div class="details px-6 text-zinc-600">
+                            <p class="mb-4">La solución integral con toda la documentación técnica y visual que necesitas.</p>
+                            <ul class="text-left space-y-3 border-t pt-6">
+                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Todo lo del Plan Intermedio</li>
+                                <li class="flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Planos de Estructuras y Detalles</li>
+                                <li class="flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Imágenes 3D detalladas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portafolio" class="py-24 bg-white">
+            <div class="container mx-auto px-6">
+                <!-- Header -->
+                <div class="text-center mb-12">
+                    <h2 class="section-title text-4xl mb-4">Portafolio Interactivo</h2>
+                    <p class="text-lg text-zinc-600 max-w-3xl mx-auto">Explora nuestros proyectos. Usa el ratón en el visor 3D para rotar y hacer zoom.</p>
+                </div>
+
+                <!-- Project Title, Description & Top Navigation -->
+                <div id="project-header" class="relative max-w-4xl mx-auto text-center mb-12 transition-opacity duration-300">
+                    <h3 id="project-title" class="text-3xl font-bold text-zinc-900 mb-2"></h3>
+                    <p id="project-description" class="text-zinc-600 max-w-2xl mx-auto"></p>
+                    <button class="project-nav-btn prev-btn absolute left-0 -top-2 md:top-1/2 md:-translate-y-1/2 bg-white hover:bg-zinc-100 p-2 rounded-full shadow-md transition-colors w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-chevron-left text-zinc-800"></i>
+                    </button>
+                    <button class="project-nav-btn next-btn absolute right-0 -top-2 md:top-1/2 md:-translate-y-1/2 bg-white hover:bg-zinc-100 p-2 rounded-full shadow-md transition-colors w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-chevron-right text-zinc-800"></i>
+                    </button>
+                </div>
+
+                <!-- Gallery & 3D Viewer Grid -->
+                <div id="portfolio-content-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <!-- Image Gallery Column -->
+                    <div id="project-gallery" class="transition-opacity duration-300 relative">
+                        <img id="main-project-image" src="" alt="Imagen principal del proyecto" class="w-full h-96 object-cover rounded-lg shadow-lg mb-4">
+                        <button class="image-nav-btn prev-img-btn absolute top-1/2 -translate-y-1/2 left-4 bg-black/30 text-white rounded-full w-10 h-10 hover:bg-black/50 transition-colors"><i class="fas fa-chevron-left"></i></button>
+                        <button class="image-nav-btn next-img-btn absolute top-1/2 -translate-y-1/2 right-4 bg-black/30 text-white rounded-full w-10 h-10 hover:bg-black/50 transition-colors"><i class="fas fa-chevron-right"></i></button>
+                        <div id="project-thumbnails" class="grid grid-cols-5 gap-2">
+                            <!-- Thumbnails will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- 3D Viewer Column -->
+                    <div id="viewer-wrapper">
+                         <div id="viewer-3d-container">
+                            <div id="viewer-3d-loader">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Cargando modelo...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Navigation -->
+                <div class="flex justify-center items-center space-x-4 mt-12">
+                     <button class="project-nav-btn prev-btn bg-white hover:bg-zinc-100 p-2 rounded-full shadow-md transition-colors w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-chevron-left text-zinc-800"></i>
+                    </button>
+                     <div id="project-dots" class="flex space-x-2"></div>
+                     <button class="project-nav-btn next-btn bg-white hover:bg-zinc-100 p-2 rounded-full shadow-md transition-colors w-10 h-10 flex items-center justify-center">
+                        <i class="fas fa-chevron-right text-zinc-800"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="contacto" class="py-24 bg-zinc-800 text-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl font-bold mb-4">Empecemos a diseñar tu próximo proyecto</h2>
+                <p class="text-lg text-zinc-300 mb-8">Escríbenos y demos el primer paso juntos.</p>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
+                    <a href="https://wa.me/5493816649439" target="_blank" class="bg-yellow-400 text-zinc-900 font-bold py-4 px-8 rounded-full text-lg hover:bg-yellow-300 transition-colors duration-300 flex items-center">
+                        <i class="fab fa-whatsapp mr-3"></i> 381-664-9439
+                    </a>
+                    <a href="https://www.instagram.com/EBANO.CONSTRUCCION" target="_blank" class="border-2 border-white text-white font-bold py-4 px-8 rounded-full text-lg hover:bg-white hover:text-zinc-900 transition-colors duration-300 flex items-center">
+                        <i class="fab fa-instagram mr-3"></i> @EBANO.CONSTRUCCION
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-zinc-900 text-zinc-400 py-6">
+        <div class="container mx-auto px-6 text-center text-sm">
+            <p>&copy; 2024 ÉBANO DISEÑO & CONSTRUCCION. Todos los derechos reservados.</p>
+            <p class="mt-2">Santiago del Estero, Argentina</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+        // --- Portfolio Data ---
+        const projects = [
+            {
+                title: 'Residencia Moderna',
+                description: 'Un diseño contemporáneo que maximiza la luz natural y los espacios abiertos, creando un ambiente de lujo y confort.',
+                images: [
+                    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=2070&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2070&auto=format&fit=crop'
+                ],
+                hasModel: true
+            },
+            {
+                title: 'Galería de Arte',
+                description: 'Un espacio diseñado para exhibir arte, con iluminación profesional y un diseño que no compite con las obras.',
+                images: [
+                    'https://images.unsplash.com/photo-1575517111478-7f6afd0973db?q=80&w=2070&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1598228723793-52759bba239c?q=80&w=1974&auto=format&fit=crop'
+                ],
+                hasModel: false
+            },
+            {
+                title: 'Oficina Minimalista',
+                description: 'Espacio de trabajo funcional y de diseño limpio, pensado para fomentar la creatividad y la productividad.',
+                images: [
+                    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=2070&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2232&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop'
+                ],
+                hasModel: true
+            }
+        ];
+        let currentProjectIndex = 0;
+        let currentImageIndex = 0;
+
+        // --- DOM Elements ---
+        const projectHeader = document.getElementById('project-header');
+        const projectGallery = document.getElementById('project-gallery');
+        const portfolioGrid = document.getElementById('portfolio-content-grid');
+        const viewerWrapper = document.getElementById('viewer-wrapper');
+        const projectTitle = document.getElementById('project-title');
+        const projectDescription = document.getElementById('project-description');
+        const mainImage = document.getElementById('main-project-image');
+        const thumbnailsContainer = document.getElementById('project-thumbnails');
+        const projectDotsContainer = document.getElementById('project-dots');
+        const allProjectNavBtns = document.querySelectorAll('.project-nav-btn');
+        const prevImgBtn = document.querySelector('.prev-img-btn');
+        const nextImgBtn = document.querySelector('.next-img-btn');
+        const loader3D = document.getElementById('viewer-3d-loader');
+
+        // --- Portfolio Logic ---
+        function updatePortfolioView(index) {
+            const project = projects[index];
+            currentImageIndex = 0;
+
+            projectHeader.classList.add('fade-out');
+            projectGallery.classList.add('fade-out');
+            viewerWrapper.classList.add('fade-out');
+
+            setTimeout(() => {
+                projectTitle.textContent = project.title;
+                projectDescription.textContent = project.description;
+                updateImageView();
+                updateDots();
+
+                if (project.hasModel) {
+                    viewerWrapper.style.display = 'block';
+                    portfolioGrid.classList.remove('lg:grid-cols-1');
+                    portfolioGrid.classList.add('lg:grid-cols-2');
+                    loadModel();
+                } else {
+                    viewerWrapper.style.display = 'none';
+                    portfolioGrid.classList.remove('lg:grid-cols-2');
+                    portfolioGrid.classList.add('lg:grid-cols-1');
+                }
+
+                projectHeader.classList.remove('fade-out');
+                projectGallery.classList.remove('fade-out');
+                viewerWrapper.classList.remove('fade-out');
+            }, 300);
+        }
+
+        function updateImageView(isInstant = false) {
+            const project = projects[currentProjectIndex];
+
+            const update = () => {
+                mainImage.src = project.images[currentImageIndex];
+                thumbnailsContainer.innerHTML = '';
+                project.images.forEach((imgSrc, i) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = imgSrc;
+                    thumb.className = 'thumbnail w-full h-20 object-cover rounded';
+                    if (i === currentImageIndex) thumb.classList.add('active');
+                    thumb.addEventListener('click', () => {
+                        currentImageIndex = i;
+                        updateImageView();
+                    });
+                    thumbnailsContainer.appendChild(thumb);
+                });
+                mainImage.classList.remove('fade-out');
+            }
+
+            if (isInstant) {
+                update();
+            } else {
+                mainImage.classList.add('fade-out');
+                setTimeout(update, 300);
+            }
+        }
+
+        function updateDots() {
+            projectDotsContainer.innerHTML = '';
+            projects.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'project-nav-dot';
+                if (i === currentProjectIndex) dot.classList.add('active');
+                dot.addEventListener('click', () => {
+                    currentProjectIndex = i;
+                    updatePortfolioView(currentProjectIndex);
+                });
+                projectDotsContainer.appendChild(dot);
+            });
+        }
+
+        allProjectNavBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.classList.contains('next-btn')) {
+                    currentProjectIndex = (currentProjectIndex + 1) % projects.length;
+                } else {
+                    currentProjectIndex = (currentProjectIndex - 1 + projects.length) % projects.length;
+                }
+                updatePortfolioView(currentProjectIndex);
+            });
+        });
+
+        nextImgBtn.addEventListener('click', () => {
+             const project = projects[currentProjectIndex];
+             currentImageIndex = (currentImageIndex + 1) % project.images.length;
+             updateImageView();
+        });
+        prevImgBtn.addEventListener('click', () => {
+             const project = projects[currentProjectIndex];
+             currentImageIndex = (currentImageIndex - 1 + project.images.length) % project.images.length;
+             updateImageView();
+        });
+
+        // --- Swipe Logic for Image Gallery ---
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        function handleGesture() {
+            if (touchendX < touchstartX) { // Swiped left
+                nextImgBtn.click();
+            }
+            if (touchendX > touchstartX) { // Swiped right
+                 prevImgBtn.click();
+            }
+        }
+
+        mainImage.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        mainImage.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+
+
+        // --- Scrollspy for navigation ---
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href').substring(1) === entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+        sections.forEach(section => observer.observe(section));
+
+        // --- Accordion for plans ---
+        document.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', () => card.classList.toggle('open'));
+        });
+
+        // --- Three.js 3D Viewer ---
+        const viewerContainer = document.getElementById('viewer-3d-container');
+        let camera, scene, renderer, controls, model;
+        const gltfLoader = new GLTFLoader();
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe4e4e7);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            viewerContainer.appendChild(renderer.domElement);
+            const environment = new RoomEnvironment(renderer);
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmremGenerator.fromScene(environment).texture;
+            environment.dispose();
+            camera = new THREE.PerspectiveCamera(50, viewerContainer.clientWidth / viewerContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0.5, 3);
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            window.addEventListener('resize', () => {
+                camera.aspect = viewerContainer.clientWidth / viewerContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(viewerContainer.clientWidth, viewerContainer.clientHeight);
+            });
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function loadModel() {
+            const project = projects[currentProjectIndex];
+            if (!project.hasModel) {
+                 if(model) model.visible = false;
+                 return;
+            }
+
+            if (model) {
+                model.visible = true;
+                return;
+            }
+            loader3D.style.display = 'flex';
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshStandardMaterial({ color: 0x3f3f46 }); // Zinc 700
+            model = new THREE.Mesh(geometry, material);
+            scene.add(model);
+            loader3D.style.display = 'none';
+        }
+        
+        // --- Initial Load ---
+        init3D();
+        updatePortfolioView(currentProjectIndex);
+
+    </script>
+
+</body>
+</html>
