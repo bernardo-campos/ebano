@@ -326,7 +326,7 @@
                     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
                     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2070&auto=format&fit=crop'
                 ],
-                hasModel: true
+                modelUrl: '/projects/example/scene.gltf'
             },
             {
                 title: 'Galería de Arte',
@@ -335,7 +335,7 @@
                     'https://images.unsplash.com/photo-1575517111478-7f6afd0973db?q=80&w=2070&auto=format&fit=crop',
                     'https://images.unsplash.com/photo-1598228723793-52759bba239c?q=80&w=1974&auto=format&fit=crop'
                 ],
-                hasModel: false
+                modelUrl: null
             },
             {
                 title: 'Oficina Minimalista',
@@ -345,7 +345,7 @@
                     'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2232&auto=format&fit=crop',
                     'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop'
                 ],
-                hasModel: true
+                modelUrl: null
             }
         ];
         let currentProjectIndex = 0;
@@ -381,15 +381,17 @@
                 updateImageView(true); // Instant update for project change
                 updateDots();
 
-                if (project.hasModel) {
+                if (project.modelUrl) {
                     viewerWrapper.style.display = 'block';
                     portfolioGrid.classList.remove('lg:grid-cols-1');
                     portfolioGrid.classList.add('lg:grid-cols-2');
-                    loadModel();
+                    loadModel(project.modelUrl);
                 } else {
                     viewerWrapper.style.display = 'none';
                     portfolioGrid.classList.remove('lg:grid-cols-2');
                     portfolioGrid.classList.add('lg:grid-cols-1');
+                    if(currentModel) scene.remove(currentModel);
+                    currentModel = null;
                 }
 
                 projectHeader.classList.remove('fade-out');
@@ -518,7 +520,7 @@
 
         // --- Three.js 3D Viewer ---
         const viewerContainer = document.getElementById('viewer-3d-container');
-        let camera, scene, renderer, controls, model;
+        let camera, scene, renderer, controls, currentModel;
         const gltfLoader = new GLTFLoader();
 
         function init3D() {
@@ -551,23 +553,47 @@
             renderer.render(scene, camera);
         }
 
-        function loadModel() {
-            const project = projects[currentProjectIndex];
-            if (!project.hasModel) {
-                 if(model) model.visible = false;
-                 return;
+        function loadModel(url) {
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
             }
 
-            if (model) {
-                model.visible = true;
+            if (!url) {
                 return;
             }
+
             loader3D.style.display = 'flex';
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshStandardMaterial({ color: 0x3f3f46 }); // Zinc 700
-            model = new THREE.Mesh(geometry, material);
-            scene.add(model);
-            loader3D.style.display = 'none';
+
+            gltfLoader.load(url, (gltf) => {
+                currentModel = gltf.scene;
+
+                // Auto-center and scale model
+                const box = new THREE.Box3().setFromObject(currentModel);
+                const size = box.getSize(new THREE.Vector3()).length();
+                const center = box.getCenter(new THREE.Vector3());
+
+                controls.reset();
+
+                currentModel.position.x += (currentModel.position.x - center.x);
+                currentModel.position.y += (currentModel.position.y - center.y);
+                currentModel.position.z += (currentModel.position.z - center.z);
+
+                camera.position.copy(center);
+                camera.position.x += size / 1.5;
+                camera.position.y += size / 2.0;
+                camera.position.z += size / 1.5;
+                camera.lookAt(center);
+
+                controls.target.copy(center);
+                controls.update();
+
+                scene.add(currentModel);
+                loader3D.style.display = 'none';
+            }, undefined, (error) => {
+                console.error('An error happened while loading the model:', error);
+                loader3D.textContent = 'Error al cargar modelo';
+            });
         }
         
         // --- Initial Load ---
