@@ -71,19 +71,6 @@
         .nav-link.active::after, .nav-link:hover::after {
             width: 100%;
         }
-        .plan-card .details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
-        }
-        .plan-card.open .details {
-            max-height: 500px; /* Adjust as needed */
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-        }
-        .plan-card.open .chevron {
-            transform: rotate(180deg);
-        }
         #viewer-3d-container {
             width: 100%;
             height: 500px;
@@ -135,6 +122,21 @@
         .project-nav-dot.active {
             background-color: #18181b; /* Zinc 900 */
         }
+        /* New styles for vertical plan cards animation */
+        .plan-card-vertical .reveal-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .plan-card-vertical.is-visible .reveal-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .plan-card-vertical.is-visible .reveal-item:nth-child(2) { transition-delay: 0.1s; }
+        .plan-card-vertical.is-visible .reveal-item:nth-child(3) { transition-delay: 0.2s; }
+        .plan-card-vertical.is-visible .reveal-item:nth-child(4) { transition-delay: 0.3s; }
+        .plan-card-vertical.is-visible .reveal-item:nth-child(5) { transition-delay: 0.4s; }
+
     </style>
 </head>
 <body class="bg-zinc-100 text-zinc-800">
@@ -165,9 +167,9 @@
     <main>
         <section id="propuesta" class="py-24 bg-white">
             <div class="container mx-auto px-6 text-center">
-                <h2 class="section-title text-4xl mb-6">Nuestra Propuesta</h2>
+                <h2 class="section-title text-4xl mb-6">¿Pensando en ampliar o remodelar?</h2>
                 <p class="max-w-3xl mx-auto text-lg text-zinc-600 mb-12">
-                    ¿Pensando en ampliar o remodelar? Te ofrecemos una idea clara y la documentación necesaria para que tu proyecto se convierta en una guía sólida a la hora de construir.
+                    Te ofrecemos una idea clara y la documentación necesaria para que tu proyecto se convierta en una guía sólida a la hora de construir.
                 </p>
                 <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2070&auto=format&fit=crop" alt="Plano arquitectónico" class="rounded-lg shadow-2xl max-w-full md:max-w-4xl mx-auto">
             </div>
@@ -177,51 +179,53 @@
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16">
                     <h2 class="section-title text-4xl mb-4">Planes y Servicios</h2>
-                    <p class="text-lg text-zinc-600">Elige el plan que mejor se adapte a tus necesidades. Haz clic para ver los detalles.</p>
+                    <p class="text-lg text-zinc-600">Elige el plan que mejor se adapte a tus necesidades.</p>
                 </div>
-                <div class="max-w-4xl mx-auto space-y-6">
-                    <!-- Plan Cards Here -->
-                     <div class="plan-card bg-white rounded-lg shadow-md cursor-pointer border border-zinc-200">
-                        <div class="p-6 flex justify-between items-center">
-                            <h3 class="text-2xl font-bold text-zinc-800">Plan Básico</h3>
-                            <i class="fas fa-chevron-down chevron transition-transform"></i>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Plan Básico -->
+                    <div class="plan-card-vertical bg-white rounded-lg shadow-lg p-8 flex flex-col text-center border-t-4 border-zinc-800">
+                        <div class="reveal-item">
+                            <h3 class="text-2xl font-bold mb-4">Plan Básico</h3>
+                            <p class="text-zinc-600 mb-8 h-24">Ideal para tener una visión clara del proyecto con la documentación esencial.</p>
                         </div>
-                        <div class="details px-6 text-zinc-600">
-                            <p class="mb-4">Ideal para tener una visión clara del proyecto con la documentación esencial.</p>
-                            <ul class="text-left space-y-3 border-t pt-6">
-                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Memoria descriptiva</li>
-                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Plano de Arquitectura (en escala)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="plan-card bg-zinc-800 text-white rounded-lg shadow-xl cursor-pointer border border-yellow-400">
-                        <div class="p-6 flex justify-between items-center">
-                             <div>
-                                <h3 class="text-2xl font-bold">Plan Intermedio</h3>
-                                <span class="text-sm text-yellow-400 font-semibold">MÁS POPULAR</span>
-                            </div>
-                            <i class="fas fa-chevron-down chevron transition-transform"></i>
-                        </div>
-                        <div class="details px-6 text-zinc-300">
-                            <p class="mb-4">Perfecto para visualizar tu proyecto en 3D y entender mejor los volúmenes.</p>
-                            <ul class="text-left space-y-3 border-t border-zinc-600 pt-6">
-                                <li class="flex items-center"><i class="fas fa-check-circle text-yellow-400 mr-3"></i> Todo lo del Plan Básico</li>
-                                <li class="flex items-center"><i class="fas fa-plus-circle text-yellow-400 mr-3"></i> Imágenes 3D conceptuales</li>
-                            </ul>
+                        <ul class="text-left space-y-4 mb-8 flex-grow">
+                            <li class="reveal-item flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Memoria descriptiva</li>
+                            <li class="reveal-item flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Plano de Arquitectura</li>
+                        </ul>
+                        <div class="reveal-item">
+                            <p class="text-4xl font-extrabold text-zinc-900 mb-2">$60.000</p>
+                            <p class="text-zinc-500 text-sm">(Hasta 50 m²)</p>
                         </div>
                     </div>
-                    <div class="plan-card bg-white rounded-lg shadow-md cursor-pointer border border-zinc-200">
-                        <div class="p-6 flex justify-between items-center">
-                            <h3 class="text-2xl font-bold text-zinc-800">Plan Completo</h3>
-                            <i class="fas fa-chevron-down chevron transition-transform"></i>
+                    <!-- Plan Intermedio -->
+                    <div class="plan-card-vertical bg-zinc-800 text-white rounded-lg shadow-2xl p-8 flex flex-col text-center transform scale-105 border-t-4 border-yellow-400">
+                         <div class="reveal-item">
+                            <h3 class="text-2xl font-bold mb-4">Plan Intermedio</h3>
+                            <p class="text-zinc-300 mb-8 h-24">Perfecto para visualizar tu proyecto en 3D y entender mejor los volúmenes.</p>
                         </div>
-                        <div class="details px-6 text-zinc-600">
-                            <p class="mb-4">La solución integral con toda la documentación técnica y visual que necesitas.</p>
-                            <ul class="text-left space-y-3 border-t pt-6">
-                                <li class="flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Todo lo del Plan Intermedio</li>
-                                <li class="flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Planos de Estructuras y Detalles</li>
-                                <li class="flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Imágenes 3D detalladas</li>
-                            </ul>
+                        <ul class="text-left space-y-4 mb-8 flex-grow">
+                            <li class="reveal-item flex items-center"><i class="fas fa-check-circle text-yellow-400 mr-3"></i> Todo lo del Plan Básico</li>
+                            <li class="reveal-item flex items-center"><i class="fas fa-plus-circle text-yellow-400 mr-3"></i> Imágenes 3D conceptuales</li>
+                        </ul>
+                        <div class="reveal-item">
+                            <p class="text-4xl font-extrabold text-white mb-2">$120.000</p>
+                            <p class="text-zinc-400 text-sm">(Hasta 50 m²)</p>
+                        </div>
+                    </div>
+                    <!-- Plan Completo -->
+                    <div class="plan-card-vertical bg-white rounded-lg shadow-lg p-8 flex flex-col text-center border-t-4 border-zinc-800">
+                         <div class="reveal-item">
+                            <h3 class="text-2xl font-bold mb-4">Plan Completo</h3>
+                            <p class="text-zinc-600 mb-8 h-24">La solución integral con toda la documentación técnica y visual que necesitas.</p>
+                        </div>
+                        <ul class="text-left space-y-4 mb-8 flex-grow">
+                            <li class="reveal-item flex items-center"><i class="fas fa-check-circle text-zinc-800 mr-3"></i> Todo lo del Plan Intermedio</li>
+                            <li class="reveal-item flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Planos de Estructuras</li>
+                             <li class="reveal-item flex items-center"><i class="fas fa-plus-circle text-zinc-800 mr-3"></i> Imágenes 3D detalladas</li>
+                        </ul>
+                        <div class="reveal-item">
+                            <p class="text-4xl font-extrabold text-zinc-900 mb-2">Desde $250.000</p>
+                            <p class="text-zinc-500 text-sm">(Hasta 50 m²)</p>
                         </div>
                     </div>
                 </div>
@@ -301,7 +305,7 @@
 
     <footer class="bg-zinc-900 text-zinc-400 py-6">
         <div class="container mx-auto px-6 text-center text-sm">
-            <p>&copy; 2024 ÉBANO DISEÑO & CONSTRUCCION. Todos los derechos reservados.</p>
+            <p>&copy; 2025 ÉBANO DISEÑO & CONSTRUCCION</p>
             <p class="mt-2">Santiago del Estero, Argentina</p>
         </div>
     </footer>
@@ -374,7 +378,7 @@
             setTimeout(() => {
                 projectTitle.textContent = project.title;
                 projectDescription.textContent = project.description;
-                updateImageView();
+                updateImageView(true); // Instant update for project change
                 updateDots();
 
                 if (project.hasModel) {
@@ -498,9 +502,18 @@
         }, { threshold: 0.5 });
         sections.forEach(section => observer.observe(section));
 
-        // --- Accordion for plans ---
-        document.querySelectorAll('.plan-card').forEach(card => {
-            card.addEventListener('click', () => card.classList.toggle('open'));
+        // --- Plan Cards Animation ---
+        const planCards = document.querySelectorAll('.plan-card-vertical');
+        const cardObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+        planCards.forEach(card => {
+            cardObserver.observe(card);
         });
 
         // --- Three.js 3D Viewer ---
